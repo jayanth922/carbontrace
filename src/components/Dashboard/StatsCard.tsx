@@ -1,59 +1,32 @@
 import React from 'react';
-import { DivideIcon as LucideIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface StatsCardProps {
   title: string;
   value: string;
-  change?: string;
-  changeType?: 'positive' | 'negative' | 'neutral';
-  icon: LucideIcon;
-  color?: string;
+  icon: React.ComponentType<{ className?: string }>; // Updated to support className
+  color: 'primary' | 'green' | 'blue' | 'orange' | 'red';
 }
 
-export default function StatsCard({
-  title,
-  value,
-  change,
-  changeType = 'neutral',
-  icon: Icon,
-  color = 'primary',
-}: StatsCardProps) {
-  const colorClasses = {
-    primary: 'bg-primary-500 text-white',
-    green: 'bg-green-500 text-white',
-    blue: 'bg-blue-500 text-white',
-    orange: 'bg-orange-500 text-white',
-    red: 'bg-red-500 text-white',
-  };
+const colorClasses: Record<StatsCardProps['color'], string> = {
+  primary: 'bg-primary-500',
+  green: 'bg-green-500',
+  blue: 'bg-blue-500',
+  orange: 'bg-orange-500',
+  red: 'bg-red-500',
+};
 
-  const changeColorClasses = {
-    positive: 'text-green-600',
-    negative: 'text-red-600',
-    neutral: 'text-gray-600',
-  };
-
+export default function StatsCard({ title, value, icon: Icon, color }: StatsCardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {change && (
-            <p className={`text-sm mt-1 ${changeColorClasses[changeType]}`}>
-              {change}
-            </p>
-          )}
-        </div>
+    <div className="bg-white p-4 rounded shadow">
+      <div className="flex items-center space-x-4">
         <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
-          <Icon className="h-6 w-6" />
+          <Icon className="h-6 w-6 text-white" />
+        </div>
+        <div>
+          <h3 className="text-sm text-gray-500">{title}</h3>
+          <p className="text-2xl font-bold">{value}</p>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

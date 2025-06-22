@@ -1,12 +1,11 @@
 // src/App.tsx
 
-import React from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import Header from './components/Layout/Header'
-import Dashboard from './components/Dashboard/Dashboard'
-import Track from './components/Track/Track'
-import AIInsights from './components/Insights/AIInsights'
-import Challenges from './components/Challenges'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Header from './components/Layout/Header';
+import Dashboard from './components/Dashboard/Dashboard';
+import Track from './components/Track/Track';
+import AIInsights from './components/Insights/AIInsights';
+import Challenges from './components/Challenges';
 
 export default function App() {
   return (
@@ -22,5 +21,5 @@ export default function App() {
         </Routes>
       </main>
     </BrowserRouter>
-  )
+  );
 }

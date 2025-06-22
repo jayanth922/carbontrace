@@ -13,9 +13,13 @@ export default function Header() {
     })
 
     // listen for changes
-    const { subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
     })
+
+    // cleanup
     return () => subscription.unsubscribe()
   }, [])
 
