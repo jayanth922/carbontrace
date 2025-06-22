@@ -1,7 +1,7 @@
 import React from 'react';
 import ActivityForm from './ActivityForm';
 import VoiceInput from './VoiceInput';
-import ReceiptUpload from './ReceiptUpload';
+import { ReceiptUpload } from './ReceiptUpload';
 
 export default function Track() {
   return (
