@@ -15,7 +15,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 // Put leaf-icon.svg in your public/ folder (the little green logo you showed)
-const leafLogo = '/leaf-icon.svg'
+const leafLogo = 'public/favicon.ico'
 
 export default function Header() {
   const { pathname } = useLocation()
