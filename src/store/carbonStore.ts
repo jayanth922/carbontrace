@@ -8,7 +8,17 @@ export interface Activity {
   type: string
   description: string
   carbon_kg: number
-  metadata: Record<string, any>
+  metadata: {
+    vehicleType?: string
+    distanceKm?: number
+    energyUsage?: number
+    energyType?: string
+    foodWeight?: number
+    foodType?: string
+    productCategory?: string
+    quantity?: number
+    [key: string]: unknown
+  }
   created_at: string
   algo_tx_id?: string      // populated after anchoring
   algo_hash?: string       // SHA256 hex of the payload
@@ -23,40 +33,40 @@ interface CarbonState {
   ) => Promise<void>
 }
 
-export const useCarbonStore = create<CarbonState>((set, get) => ({
+export const useCarbonStore = create<CarbonState>((set) => ({
   activities: [],
   loading: false,
 
   fetchActivities: async () => {
     set({ loading: true })
     const { data, error } = await supabase
-      .from<Activity>('activities')
+      .from('activities')
       .select('*')
-      .order('created_at', { ascending: false })
 
     if (error) {
       console.error('fetchActivities error:', error)
       set({ loading: false })
       return
     }
-    set({ activities: data || [], loading: false })
+    set({ activities: (data as Activity[]) || [], loading: false })
   },
 
   addActivity: async (payload) => {
-    const { data: { user }, error: userErr } = await supabase.auth.getUser()
-    if (userErr || !user) throw new Error('Must be signed in to add activity')
+    const { data: userData, error: userErr } = await supabase.auth.getUser()
+    if (userErr || !userData?.user) throw new Error('Must be signed in to add activity')
 
     // 1) Insert into Supabase
     const { data: newAct, error: insertErr } = await supabase
-      .from<Activity>('activities')
-      .insert([{ ...payload, user_id: user.id }])
+      .from('activities')
+      .insert([{ ...payload, user_id: userData.user.id }])
+      .select('*')
       .single()
     if (insertErr || !newAct) {
       console.error('addActivity insert error:', insertErr)
       return
     }
     // optimistically update UI
-    set((state) => ({ activities: [newAct, ...state.activities] }))
+    set((state) => ({ activities: [newAct as Activity, ...state.activities] }))
 
     // 2) Anchor on Algorand
     try {
@@ -73,9 +83,10 @@ export const useCarbonStore = create<CarbonState>((set, get) => ({
 
       // 3) Patch Supabase record with txId & hash
       const { data: updated, error: updateErr } = await supabase
-        .from<Activity>('activities')
+        .from('activities')
         .update({ algo_tx_id: txId, algo_hash: hash })
         .eq('id', newAct.id)
+        .select('*')
         .single()
       if (updateErr) {
         console.error('Error updating activity with anchor data:', updateErr)
@@ -85,7 +96,7 @@ export const useCarbonStore = create<CarbonState>((set, get) => ({
       // 4) Update store with anchored info
       set((state) => ({
         activities: state.activities.map((act) =>
-          act.id === updated.id ? updated : act
+          act.id === updated.id ? (updated as Activity) : act
         ),
       }))
     } catch (e) {

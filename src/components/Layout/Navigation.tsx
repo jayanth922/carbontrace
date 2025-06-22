@@ -1,14 +1,11 @@
-import React from 'react';
 import { BarChart3, Plus, Target, Trophy, Lightbulb, Leaf } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { Paywall } from '../Paywall/Paywall';
 
 interface NavigationProps {
   activeTab: string;
-  onTabChange: (tab: string) => void;
 }
 
-export default function Navigation({ activeTab, onTabChange }: NavigationProps) {
+export default function Navigation({ activeTab }: NavigationProps) {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'track', label: 'Track', icon: Plus },

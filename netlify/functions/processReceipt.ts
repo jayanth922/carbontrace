@@ -1,33 +1,33 @@
 // netlify/functions/processReceipt.ts
-import type { Handler } from '@netlify/functions'
+import type { Handler } from '@netlify/functions';
 
 interface VisionRequest {
   requests: Array<{
-    image: { content: string }
-    features: Array<{ type: 'TEXT_DETECTION'; maxResults: number }>
-  }>
+    image: { content: string };
+    features: Array<{ type: 'TEXT_DETECTION'; maxResults: number }>;
+  }>;
 }
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Only POST allowed' }
+    return { statusCode: 405, body: 'Only POST allowed' };
   }
 
   // 1) Parse incoming base64 image
-  let b64: string
+  let b64: string;
   try {
-    const { imageBase64 } = JSON.parse(event.body || '{}')
-    if (!imageBase64) throw new Error()
-    b64 = imageBase64.replace(/^data:.*;base64,/, '')
+    const { imageBase64 } = JSON.parse(event.body || '{}');
+    if (!imageBase64) throw new Error();
+    b64 = imageBase64.replace(/^data:.*;base64,/, '');
   } catch {
-    return { statusCode: 400, body: 'Request must be JSON with `imageBase64` field.' }
+    return { statusCode: 400, body: 'Request must be JSON with `imageBase64` field.' };
   }
 
   // 2) Call Google Vision OCR
-  const visionKey = process.env.GOOGLE_VISION_API_KEY!
-  if (!visionKey) return { statusCode: 500, body: 'Missing GOOGLE_VISION_API_KEY' }
+  const visionKey = process.env.GOOGLE_VISION_API_KEY!;
+  if (!visionKey) return { statusCode: 500, body: 'Missing GOOGLE_VISION_API_KEY' };
 
-  let ocrText: string
+  let ocrText: string;
   try {
     const visionResp = await fetch(
       `https://vision.googleapis.com/v1/images:annotate?key=${visionKey}`,
@@ -35,26 +35,32 @@ export const handler: Handler = async (event) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(<VisionRequest>{
-          requests: [{
-            image: { content: b64 },
-            features: [{ type: 'TEXT_DETECTION', maxResults: 1 }],
-          }],
+          requests: [
+            {
+              image: { content: b64 },
+              features: [{ type: 'TEXT_DETECTION', maxResults: 1 }],
+            },
+          ],
         }),
       }
-    )
-    const visionJson = await visionResp.json()
-    ocrText = visionJson.responses?.[0]?.fullTextAnnotation?.text
-    if (!ocrText) throw new Error('No text detected')
-  } catch (e: any) {
-    console.error('Vision OCR error:', e)
-    return { statusCode: 502, body: 'Vision OCR failed: ' + e.toString() }
+    );
+    const visionJson = await visionResp.json();
+    ocrText = visionJson.responses?.[0]?.fullTextAnnotation?.text;
+    if (!ocrText) throw new Error('No text detected');
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      console.error('Vision OCR error:', e);
+      return { statusCode: 502, body: 'Vision OCR failed: ' + e.message };
+    }
+    console.error('Vision OCR error:', e);
+    return { statusCode: 502, body: 'Vision OCR failed: Unknown error' };
   }
 
   // 3) Call Groq Cloud for parsing
-  const groqKey = process.env.GROQ_API_KEY!
-  const groqModel = process.env.GROQ_MODEL_ID! // e.g. "llama-3.1-8b-instant"
+  const groqKey = process.env.GROQ_API_KEY!;
+  const groqModel = process.env.GROQ_MODEL_ID!; // e.g. "llama-3.1-8b-instant"
   if (!groqKey || !groqModel) {
-    return { statusCode: 500, body: 'Missing GROQ_API_KEY or GROQ_MODEL_ID' }
+    return { statusCode: 500, body: 'Missing GROQ_API_KEY or GROQ_MODEL_ID' };
   }
 
   // system prompt identical to before
@@ -65,11 +71,11 @@ For each item, output JSON object with fields:
   - "carbon_kg": estimated carbon footprint in kilograms (round to 2 decimals)
 Finally, output a top-level "total_carbon_kg" summing all items.
 Respond with a single JSON object: { "items": [ ... ], "total_carbon_kg": ... }.
-  `.trim()
+  `.trim();
 
   try {
     const groqResp = await fetch(
-      'https://api.groq.com/openai/v1/chat/completions', // Groq endpoint :contentReference[oaicite:0]{index=0}
+      'https://api.groq.com/openai/v1/chat/completions',
       {
         method: 'POST',
         headers: {
@@ -77,7 +83,7 @@ Respond with a single JSON object: { "items": [ ... ], "total_carbon_kg": ... }.
           Authorization: `Bearer ${groqKey}`,
         },
         body: JSON.stringify({
-          model: groqModel,      // pick one of Groq’s free-tier LLMs, e.g. llama-3.1-8b-instant :contentReference[oaicite:1]{index=1}
+          model: groqModel,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: `Receipt text:\n${ocrText}` },
@@ -85,20 +91,23 @@ Respond with a single JSON object: { "items": [ ... ], "total_carbon_kg": ... }.
           temperature: 0,
         }),
       }
-    )
+    );
     if (!groqResp.ok) {
-      const err = await groqResp.text()
-      throw new Error(`Groq API error ${groqResp.status}: ${err}`)
+      const err = await groqResp.text();
+      throw new Error(`Groq API error ${groqResp.status}: ${err}`);
     }
-    const { choices } = (await groqResp.json()) as { choices: Array<{ message: { content: string } }> }
-    const parsed = JSON.parse(choices[0].message.content)
+    const { choices } = (await groqResp.json()) as { choices: Array<{ message: { content: string } }> };
+    const parsed = JSON.parse(choices[0].message.content);
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(parsed),
+    };
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      console.error('Receipt parsing via Groq failed:', e);
+      return { statusCode: 502, body: 'Receipt parsing failed: ' + e.message };
     }
-  } catch (e: any) {
-    console.error('Receipt parsing via Groq failed:', e)
-    return { statusCode: 502, body: 'Receipt parsing failed: ' + e.toString() }
+    console.error('Receipt parsing via Groq failed:', e);
+    return { statusCode: 502, body: 'Receipt parsing failed: Unknown error' };
   }
-}
+};

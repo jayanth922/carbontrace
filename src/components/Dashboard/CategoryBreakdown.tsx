@@ -1,6 +1,5 @@
 // src/components/Dashboard/CategoryBreakdown.tsx
 
-import React from 'react'
 import type { Activity } from '../../store/carbonStore'
 
 interface CategoryBreakdownProps {

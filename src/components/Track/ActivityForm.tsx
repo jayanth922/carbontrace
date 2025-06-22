@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Car, Zap, UtensilsCrossed, ShoppingBag, Plane } from 'lucide-react';
 import { useCarbonStore } from '../../store/carbonStore';
@@ -9,6 +9,18 @@ import {
   calculateShoppingFootprint 
 } from '../../utils/carbonCalculations';
 import toast from 'react-hot-toast';
+
+interface ActivityMetadata {
+  vehicleType?: string;
+  distanceKm?: number;
+  energyUsage?: number;
+  energyType?: string;
+  foodWeight?: number;
+  foodType?: string;
+  productCategory?: string;
+  quantity?: number;
+  [key: string]: unknown; // Added index signature for compatibility
+}
 
 interface ActivityFormData {
   type: 'transport' | 'energy' | 'food' | 'shopping' | 'travel';
@@ -71,7 +83,7 @@ export default function ActivityForm() {
 
   const onSubmit = async (data: ActivityFormData) => {
     let carbonFootprint = 0;
-    let metadata: any = {};
+    let metadata: ActivityMetadata = {};
 
     // Calculate carbon footprint based on activity type
     switch (data.type) {

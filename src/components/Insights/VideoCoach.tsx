@@ -1,25 +1,34 @@
 import { useEffect, useState } from 'react'
-import { useCarbonStore } from '../../store/carbonStore'
+import { supabase } from '../../utils/supabaseClient'
 
 export function VideoCoach() {
   const [meetingUrl, setMeetingUrl] = useState<string | null>(null)
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState<string | null>(null)
-  const user = useCarbonStore((s) => s.user) // assuming you’ve stored user info
+  const [user, setUser]           = useState<{ email: string } | null>(null)
 
   useEffect(() => {
+    // Fetch user on mount
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) {
+        setUser({ email: data.user.email })
+      } else {
+        setUser(null)
+      }
+    })
+
     if (meetingUrl) return
     setLoading(true)
     fetch('/.netlify/functions/createConversation', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        context: `Hello ${user?.email ?? 'Friend'}, here’s your personal CarbonTrace coach!`
+        context: `Hello ${user?.email ?? 'Friend'}, here’s your personal CarbonTrace coach!`,
       }),
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(await res.text())
-        return res.json<{ url: string }>()
+        return res.json()
       })
       .then(({ url }) => setMeetingUrl(url))
       .catch((e) => { console.error(e); setError('Failed to load video coach.') })

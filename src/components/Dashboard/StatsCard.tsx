@@ -1,6 +1,6 @@
 // src/components/Dashboard/StatsCard.tsx
 
-import React, { ReactNode } from 'react'
+import { ReactNode } from 'react';
 
 interface StatsCardProps {
   icon: ReactNode

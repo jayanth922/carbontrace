@@ -1,12 +1,12 @@
 // src/components/Dashboard/Dashboard.tsx
 
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useCarbonStore } from '../../store/carbonStore'
 import StatsCard from './StatsCard'
 import CarbonChart from './CarbonChart'
 import CategoryBreakdown from './CategoryBreakdown'
 import RecentActivities from './RecentActivities'
-import { ChartBarIcon, CalendarDaysIcon, BoltIcon, TargetIcon } from '@heroicons/react/24/outline'
+import { ChartBarIcon, CalendarDaysIcon, BoltIcon, TagIcon } from '@heroicons/react/24/outline'
 
 export default function Dashboard() {
   const { activities, loading, fetchActivities } = useCarbonStore()
@@ -45,7 +45,7 @@ export default function Dashboard() {
           value={`${total.toFixed(2)} kg`}
         />
         <StatsCard
-          icon={<TargetIcon className="h-6 w-6 text-orange-500" />}
+          icon={<TagIcon className="h-6 w-6 text-orange-500" />}
           title="Monthly Goal"
           value={`${monthlyGoal} kg`}
         />
