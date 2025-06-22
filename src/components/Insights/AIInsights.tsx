@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { LightBulbIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline'
 import { VideoCoach } from './VideoCoach'
 
-export function AIInsights() {
+export default function AIInsights() {
   const tips = [
     'Recycling one aluminum can saves enough energy to power a TV for 3 hours',
     'A 5-minute shorter shower can save 12kg of CO₂ per month',
