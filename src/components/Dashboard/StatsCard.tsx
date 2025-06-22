@@ -1,32 +1,23 @@
-import React from 'react';
+// src/components/Dashboard/StatsCard.tsx
+
+import React, { ReactNode } from 'react'
 
 interface StatsCardProps {
-  title: string;
-  value: string;
-  icon: React.ComponentType<{ className?: string }>; // Updated to support className
-  color: 'primary' | 'green' | 'blue' | 'orange' | 'red';
+  icon: ReactNode
+  title: string
+  value: string
+  subtext?: string
 }
 
-const colorClasses: Record<StatsCardProps['color'], string> = {
-  primary: 'bg-primary-500',
-  green: 'bg-green-500',
-  blue: 'bg-blue-500',
-  orange: 'bg-orange-500',
-  red: 'bg-red-500',
-};
-
-export default function StatsCard({ title, value, icon: Icon, color }: StatsCardProps) {
+export default function StatsCard({ icon, title, value, subtext }: StatsCardProps) {
   return (
-    <div className="bg-white p-4 rounded shadow">
-      <div className="flex items-center space-x-4">
-        <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
-          <Icon className="h-6 w-6 text-white" />
-        </div>
-        <div>
-          <h3 className="text-sm text-gray-500">{title}</h3>
-          <p className="text-2xl font-bold">{value}</p>
-        </div>
+    <div className="bg-white rounded-lg shadow p-4 flex items-center space-x-4">
+      <div className="p-2 bg-green-100 rounded-full">{icon}</div>
+      <div>
+        <p className="text-sm text-gray-500">{title}</p>
+        <p className="text-2xl font-bold">{value}</p>
+        {subtext && <p className="text-xs text-gray-400">{subtext}</p>}
       </div>
     </div>
-  );
+  )
 }
