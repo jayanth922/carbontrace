@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabaseClient'
 
-export function Header() {
+export default function Header() {
   const [user, setUser] = useState(supabase.auth.user())
 
   useEffect(() => {
