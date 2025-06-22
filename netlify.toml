@@ -1,2 +1,9 @@
 [build]
+  publish   = "dist"
+  command   = "npm ci && npm run build"
   functions = "netlify/functions"
+
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
