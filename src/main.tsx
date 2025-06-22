@@ -1,24 +1,24 @@
-import { StrictMode } from 'react';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
-import * as Purchases from '@revenuecat/purchases-js';
+import App from './App';
+import './index.css'; // make sure your global CSS is still imported
+
+// RevenueCat & Supabase setup (if you’re still doing this here)
+import Purchases from '@revenuecat/purchases-js';
 import { supabase } from './utils/supabaseClient';
 
-// 1) Get your public API key from env
-
 const RC_PUBLIC_KEY = import.meta.env.VITE_REVENUECAT_PUBLIC_API_KEY!;
-Purchases.configure(RC_PUBLIC_KEY)
+if (!RC_PUBLIC_KEY) throw new Error('Missing VITE_REVENUECAT_PUBLIC_API_KEY');
 
-// also re-identify when auth state changes:
+Purchases.configure(RC_PUBLIC_KEY);
 supabase.auth.onAuthStateChange((_event, session) => {
-  if (session?.user?.id) {
-    Purchases.identify(session.user.id)
-  }
-})
+  if (session?.user?.id) Purchases.identify(session.user.id);
+});
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+// ----------------------
+// The only change below:
+// ----------------------
+const container = document.getElementById('root');
+if (!container) throw new Error('Root container missing in HTML');
+const root = createRoot(container);
+root.render(<App />);
