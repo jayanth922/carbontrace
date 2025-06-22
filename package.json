@@ -12,7 +12,6 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@netlify/functions": "^4.1.6",
-    "@revenuecat/purchases-js": "^1.6.0",
     "@supabase/supabase-js": "^2.50.0",
     "algosdk": "^3.3.1",
     "chart.js": "^4.5.0",
