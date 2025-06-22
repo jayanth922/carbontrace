@@ -1,19 +1,26 @@
 // src/components/Layout/Header.tsx
 import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabaseClient'
+import type { User } from '@supabase/supabase-js'
 
 export default function Header() {
-  const [user, setUser] = useState(supabase.auth.user())
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    // initial fetch
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user)
+    })
+
+    // listen for changes
+    const { subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
     })
-    return () => sub.unsubscribe()
+    return () => subscription.unsubscribe()
   }, [])
 
   const signIn = () =>
-    supabase.auth.signIn({ provider: 'github' }) // or .signInWithOtp({ email })
+    supabase.auth.signInWithOAuth({ provider: 'github' }) // or .signInWithOtp({ email })
   const signOut = () => supabase.auth.signOut()
 
   return (

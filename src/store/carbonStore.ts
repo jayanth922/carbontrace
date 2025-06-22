@@ -43,8 +43,8 @@ export const useCarbonStore = create<CarbonState>((set, get) => ({
   },
 
   addActivity: async (payload) => {
-    const user = supabase.auth.user()
-    if (!user) throw new Error('Must be signed in to add activity')
+    const { data: { user }, error: userErr } = await supabase.auth.getUser()
+    if (userErr || !user) throw new Error('Must be signed in to add activity')
 
     // 1) Insert into Supabase
     const { data: newAct, error: insertErr } = await supabase
