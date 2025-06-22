@@ -1,6 +1,6 @@
 // src/components/Paywall/Paywall.tsx
 import { useEffect, useState } from 'react'
-import Purchases from '@revenuecat/purchases-js'
+import { Purchases } from '@revenuecat/purchases-js'
 
 interface Package {
   identifier: string
