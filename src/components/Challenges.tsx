@@ -34,7 +34,7 @@ const myths: Myth[] = [
   },
 ]
 
-export function Challenges() {
+export default function Challenges() {
   const [current, setCurrent] = useState(0)
   const [score, setScore] = useState(0)
   const [finished, setFinished] = useState(false)
