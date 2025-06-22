@@ -10,6 +10,8 @@ import AIInsights from './components/Insights/AIInsights';
 import { useCarbonStore } from './store/carbonStore';
 import { Paywall } from './components/Paywall/Paywall';
 import { Challenges } from './components/Challenges';
+import * as Purchases from '@revenuecat/purchases-js';
+import { supabase } from './utils/supabaseClient';
 
 function ErrorFallback({ error, resetErrorBoundary }: any) {
   return (
@@ -33,6 +35,31 @@ function App() {
   useEffect(() => {
     fetchActivities();
   }, [fetchActivities]);
+
+  useEffect(() => {
+    // 1) RevenueCat init
+    const RC_KEY = import.meta.env.VITE_REVENUECAT_PUBLIC_API_KEY;
+    if (RC_KEY) {
+      Purchases.configure(RC_KEY);
+    }
+
+    // 2) Identify user if already signed in
+    supabase.auth.getSession?.().then(({ data }) => {
+      if (data.session?.user.id) {
+        Purchases.identify(data.session.user.id);
+      }
+    });
+
+    // 3) Subscribe to auth changes
+    const { subscription } =
+      supabase.auth.onAuthStateChange?.((_event, session) => {
+        if (session?.user.id) {
+          Purchases.identify(session.user.id);
+        }
+      }) ?? { subscription: { unsubscribe: () => {} } };
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const renderContent = () => {
     switch (activeTab) {
