@@ -3,6 +3,7 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
+import { AuthProvider } from './components/Auth/AuthProvider';
 
 const container = document.getElementById('root')
 if (!container) {
@@ -10,6 +11,8 @@ if (!container) {
 }
 createRoot(container).render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </React.StrictMode>
 )
