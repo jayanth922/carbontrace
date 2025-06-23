@@ -1,109 +1,95 @@
-import React, { useState } from 'react';
-import ActivityForm from './ActivityForm';
-import VoiceInput from './VoiceInput';
-import { ReceiptUpload } from './ReceiptUpload';
-import { useCarbonStore } from '../../store/carbonStore';
+// src/components/Track/Track.tsx
+import React, { useState } from 'react'
+import { useCarbonStore } from '../../store/carbonStore'
+import { Car, BoltIcon, ShoppingBagIcon, TicketIcon, CakeIcon } from 'lucide-react'
+
+const ICONS: Record<ActivityType, React.ReactNode> = {
+  transport: <Car className="h-6 w-6 text-green-500" />,
+  energy:    <BoltIcon className="h-6 w-6 text-yellow-500" />,
+  food:      <CakeIcon className="h-6 w-6 text-red-500" />,
+  shopping:  <ShoppingBagIcon className="h-6 w-6 text-blue-500" />,
+  travel:    <TicketIcon className="h-6 w-6 text-purple-500" />,
+}
+
+type ActivityType = 'transport' | 'energy' | 'food' | 'shopping' | 'travel'
 
 export default function Track() {
-  const addActivity = useCarbonStore((s) => s.addActivity);
+  const addActivity = useCarbonStore((s) => s.addActivity)
 
-  const [type, setType] = useState<'transport' | 'energy' | 'food' | 'shopping' | 'travel'>('transport');
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState<number>(0); // e.g. km, kWh, kg CO2
-  const [metadata, setMetadata] = useState('');
+  const [type, setType] = useState<ActivityType>('transport')
+  const [description, setDescription] = useState('')
+  const [amount, setAmount] = useState<number>(0)
+  const [extra, setExtra] = useState<string>('')
 
   const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await addActivity({
-        type,
-        description,
-        carbon_kg: amount,
-        metadata: metadata ? JSON.parse(metadata) : {},
-      });
-      // clear form
-      setDescription('');
-      setAmount(0);
-      setMetadata('');
-      alert('Activity stored!');
-    } catch (err) {
-      console.error(err);
-      alert('Failed to store activity.');
+    e.preventDefault()
+    let metadata: Record<string, string> = {}
+
+    switch (type) {
+      case 'transport':
+        metadata = { vehicle: extra }
+        break
+      case 'energy':
+        metadata = { source: extra }
+        break
+      case 'food':
+        metadata = { cuisine: extra }
+        break
+      case 'shopping':
+        metadata = { item: extra }
+        break
+      case 'travel':
+        metadata = { mode: extra }
+        break
     }
-  };
+
+    await addActivity({ type, description, carbon_kg: amount, metadata })
+    // reset
+    setDescription('')
+    setAmount(0)
+    setExtra('')
+    alert('Activity saved!')
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Track Your Carbon Footprint</h1>
-        <p className="text-gray-600 mt-2">
-          Add activities manually, use voice input, or upload receipts for AI analysis
-        </p>
-      </div>
+    <form
+      onSubmit={onSubmit}
+      className="space-y-6 bg-white rounded-lg shadow p-6 max-w-3xl mx-auto"
+    >
+      <h2 className="text-2xl font-bold">Track New Activity</h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Voice Input */}
-        <VoiceInput />
-
-        {/* Receipt Upload */}
-        <ReceiptUpload />
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="space-y-3">
-            <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-              <div className="font-medium text-gray-900">🚗 Daily Commute</div>
-              <div className="text-sm text-gray-500">Track your regular commute</div>
-            </button>
-            <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-              <div className="font-medium text-gray-900">🏠 Home Energy</div>
-              <div className="text-sm text-gray-500">Log electricity/gas usage</div>
-            </button>
-            <button className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-              <div className="font-medium text-gray-900">🍽️ Meal Impact</div>
-              <div className="text-sm text-gray-500">Calculate food footprint</div>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Manual Form */}
-      <ActivityForm />
-
-      {/* New Activity Form */}
-      <form onSubmit={onSubmit} className="max-w-md mx-auto p-6 bg-white rounded shadow space-y-4">
-        <h2 className="text-xl font-bold">Track New Activity</h2>
-
-        <label className="block">
-          <span className="text-sm font-medium">Category</span>
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value as 'transport' | 'energy' | 'food' | 'shopping' | 'travel')}
-            className="mt-1 block w-full border rounded p-2"
+      {/* Type selector */}
+      <div className="flex space-x-2">
+        {(['transport','energy','food','shopping','travel'] as ActivityType[]).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setType(t)}
+            className={`flex-1 flex flex-col items-center p-4 border rounded-lg 
+              ${type === t ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-400'}`}
           >
-            <option value="transport">Transport</option>
-            <option value="energy">Energy</option>
-            <option value="food">Food</option>
-            <option value="shopping">Shopping</option>
-            <option value="travel">Travel</option>
-          </select>
-        </label>
+            {ICONS[t]}
+            <span className="mt-2 text-sm capitalize">{t}</span>
+          </button>
+        ))}
+      </div>
 
+      {/* Common fields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <label className="block">
           <span className="text-sm font-medium">Description</span>
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="e.g. Drove 10 km"
+            placeholder="What did you do?"
             className="mt-1 block w-full border rounded p-2"
             required
           />
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium">Amount (kg CO₂)</span>
+          <span className="text-sm font-medium">Carbon (kg CO₂)</span>
           <input
             type="number"
             step="0.01"
@@ -113,24 +99,38 @@ export default function Track() {
             required
           />
         </label>
+      </div>
 
-        <label className="block">
-          <span className="text-sm font-medium">Metadata (JSON)</span>
-          <textarea
-            value={metadata}
-            onChange={(e) => setMetadata(e.target.value)}
-            placeholder='e.g. {"vehicle":"electric"}'
-            className="mt-1 block w-full border rounded p-2"
-          />
-        </label>
+      {/* Type-specific extra field */}
+      <label className="block">
+        <span className="text-sm font-medium">
+          {type === 'transport' && 'Vehicle Type'}
+          {type === 'energy'    && 'Energy Source'}
+          {type === 'food'      && 'Cuisine / Food Category'}
+          {type === 'shopping'  && 'Item Purchased'}
+          {type === 'travel'    && 'Mode of Travel'}
+        </span>
+        <input
+          type="text"
+          value={extra}
+          onChange={(e) => setExtra(e.target.value)}
+          placeholder={
+            type === 'transport' ? 'e.g. Electric Car' :
+            type === 'energy'    ? 'e.g. Grid Electricity' :
+            type === 'food'      ? 'e.g. Italian' :
+            type === 'shopping'  ? 'e.g. Jeans' :
+            'e.g. Plane'
+          }
+          className="mt-1 block w-full border rounded p-2"
+        />
+      </label>
 
-        <button
-          type="submit"
-          className="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          Save Activity
-        </button>
-      </form>
-    </div>
-  );
+      <button
+        type="submit"
+        className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+      >
+        Save Activity
+      </button>
+    </form>
+  )
 }
