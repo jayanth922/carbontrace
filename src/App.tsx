@@ -9,6 +9,7 @@ import Track from './components/Track/Track';
 import AIInsights from './components/Insights/AIInsights';
 import Challenges from './components/Challenges';
 import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Routes>
           {/* Public */}
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
           {/* Protected */}
           <Route
