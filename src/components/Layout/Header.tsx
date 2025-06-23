@@ -1,7 +1,7 @@
 // src/components/Layout/Header.tsx
 
 import React from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   ChartBarIcon,
   PlusIcon,
@@ -11,14 +11,18 @@ import {
   BoltIcon,
   BellIcon,
   Cog6ToothIcon,
-  FireIcon,
 } from '@heroicons/react/24/outline'
+import { supabase } from '../../utils/supabaseClient'
+import { useAuth } from '../Auth/AuthProvider'
 
 // Put leaf-icon.svg in your public/ folder (the little green logo you showed)
 const leafLogo = 'public/favicon.ico'
 
 export default function Header() {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const session = useAuth() // Get the current session
+  const user = session?.user // Supabase User object
 
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: <ChartBarIcon className="h-5 w-5" /> },
@@ -28,6 +32,11 @@ export default function Header() {
     { to: '/insights',  label: 'AI Insights',icon: <LightBulbIcon className="h-5 w-5" /> },
     { to: '/offset',    label: 'Offset',    icon: <BoltIcon className="h-5 w-5" /> },
   ]
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut() // Clear the JWT
+    navigate('/login', { replace: true }) // Redirect to login
+  }
 
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-white shadow">
@@ -65,21 +74,29 @@ export default function Header() {
         })}
       </nav>
 
-      {/* Right controls */}
+      {/* User & controls */}
       <div className="flex items-center space-x-4">
-        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-          Level 3
-        </span>
-        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm flex items-center space-x-1">
-          <FireIcon className="h-4 w-4" />
-          <span>7 day streak</span>
-        </span>
-        <BellIcon className="h-6 w-6 text-gray-500 hover:text-gray-700 cursor-pointer" />
-        <Cog6ToothIcon className="h-6 w-6 text-gray-500 hover:text-gray-700 cursor-pointer" />
-        {/* Replace with real avatar once you have it */}
-        <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center text-sm text-gray-600">
-          AJ
-        </div>
+        {/* Only show if user is signed in */}
+        {user ? (
+          <>
+            <span className="text-sm text-gray-700">{user.email}</span>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-red-500 hover:underline"
+            >
+              Log Out
+            </button>
+          </>
+        ) : (
+          <>
+            <BellIcon className="h-6 w-6 text-gray-500 hover:text-gray-700 cursor-pointer" />
+            <Cog6ToothIcon className="h-6 w-6 text-gray-500 hover:text-gray-700 cursor-pointer" />
+            {/* Replace with real avatar once you have it */}
+            <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center text-sm text-gray-600">
+              AJ
+            </div>
+          </>
+        )}
       </div>
     </header>
   )
