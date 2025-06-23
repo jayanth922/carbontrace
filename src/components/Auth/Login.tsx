@@ -1,12 +1,32 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../utils/supabaseClient';
+import { Session, AuthError } from '@supabase/supabase-js';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  //  ── 1) On mount, check if this URL has an OTP (magic link) token
+  useEffect(() => {
+    // exchangeCodeForSession will:
+    //  • confirm the user (set email_confirmed_at)
+    //  • store the session (JWT) in localStorage
+    //  • return { data: { session }, error }
+    supabase.auth
+      .exchangeCodeForSession(window.location.href) // Correct method for handling OTP links
+      .then(({ data, error }: { data: { session: Session | null } | null; error: AuthError | null }) => {
+        if (error && error.message.includes('expired')) {
+          setError('The confirmation link has expired. Please register or login again.');
+        } else if (data?.session) {
+          // OTP succeeded, redirect to dashboard
+          navigate('/dashboard', { replace: true });
+        }
+      });
+  }, [navigate, location.hash]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
