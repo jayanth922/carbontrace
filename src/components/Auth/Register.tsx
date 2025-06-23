@@ -11,11 +11,10 @@ export default function Register() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: window.location.origin + '/login' }
-    });
+    const { error } = await supabase.auth.signUp(
+      { email, password },
+      { redirectTo: window.location.origin + '/login' }
+    );
     if (error) {
       setError(error.message);
     } else {
