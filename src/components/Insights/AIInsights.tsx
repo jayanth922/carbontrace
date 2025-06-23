@@ -1,8 +1,7 @@
 // src/components/Insights/AIInsights.tsx
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { LightBulbIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline'
-import { VideoCoach } from './VideoCoach'
 
 export default function AIInsights() {
   const tips = [
@@ -39,9 +38,6 @@ export default function AIInsights() {
 
   return (
     <div className="space-y-6">
-      {/* AI Video Coach */}
-      <VideoCoach />
-
       {/* Daily Tips */}
       <div className="bg-green-600 rounded-lg p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
         {tips.map((tip, idx) => (
